@@ -1,0 +1,20 @@
+[Unit]
+Description=Expert-Docs dashboard (Kommo)
+After=network.target
+
+[Service]
+Type=simple
+# Куди склоновано репозиторій:
+WorkingDirectory=/opt/dashboardnotarius
+# Шлях до node (перевірте: which node). Для nvm вкажіть повний шлях.
+ExecStart=/usr/bin/node src/server.js
+Restart=always
+RestartSec=5
+# Користувач, від імені якого працює сервіс (створіть або змініть на свій):
+User=nodeapp
+Group=nodeapp
+Environment=NODE_ENV=production
+# .env читається автоматично з WorkingDirectory (dotenv)
+
+[Install]
+WantedBy=multi-user.target
