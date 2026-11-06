@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Expert-Docs — ЗП помічників</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- Екран входу -->
+  <section id="login-view" class="login hidden">
+    <form id="login-form" class="login-card">
+      <h1>Expert-Docs</h1>
+      <p class="muted">Дашборд нарахувань помічників</p>
+      <label>Логін<input id="login" autocomplete="username" required /></label>
+      <label>Пароль<input id="password" type="password" autocomplete="current-password" required /></label>
+      <button type="submit">Увійти</button>
+      <div id="login-error" class="error"></div>
+    </form>
+  </section>
+
+  <!-- Дашборд -->
+  <section id="app-view" class="hidden">
+    <header class="topbar">
+      <div class="brand">Expert-Docs <span class="muted" id="role-badge"></span></div>
+      <div class="topbar-right">
+        <span id="cache-info" class="muted small"></span>
+        <button id="refresh-btn" class="ghost" title="Оновити дані з Kommo">↻ Оновити</button>
+        <span id="who-am-i"></span>
+        <button id="logout-btn" class="ghost">Вийти</button>
+      </div>
+    </header>
+
+    <main class="container">
+      <div class="controls">
+        <label>Місяць
+          <select id="month-select"></select>
+        </label>
+        <label id="assistant-filter-wrap">Помічник
+          <select id="assistant-select"></select>
+        </label>
+        <span id="frozen-badge" class="badge frozen hidden">🔒 Місяць у архіві (закрито)</span>
+
+        <!-- Блок CEO -->
+        <div id="ceo-tools" class="ceo-tools hidden">
+          <div class="rates">
+            <label>грн / підпис <input id="sign-rate" type="number" min="0" step="1" /></label>
+            <label>грн / акт <input id="act-rate" type="number" min="0" step="1" /></label>
+            <button id="save-rates" class="ghost">Зберегти ставки</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Підсумки -->
+      <h2>Підсумки</h2>
+      <div class="table-scroll">
+      <table class="tbl" id="summary-table">
+        <thead>
+          <tr>
+            <th>Помічник</th><th>К-ть актів</th><th>К-ть підписів</th>
+            <th>Угод</th><th>Бюджет, грн</th><th>ЗП, грн</th>
+            <th>Премія, грн</th><th>Разом, грн</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+        <tfoot></tfoot>
+      </table>
+      </div>
+
+      <!-- Журнал (лог) -->
+      <h2>Журнал угод <span class="muted small" id="ledger-count"></span></h2>
+      <div class="table-scroll">
+        <table class="tbl" id="ledger-table">
+          <thead>
+            <tr>
+              <th>Назва</th><th>Бюджет</th><th>Хто готує довіреність?</th>
+              <th>К-ть актів</th><th>К-ть підписів</th><th>time</th>
+              <th>id угоди</th><th>ЗП, грн</th><th>Посилання</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </main>
+  </section>
+
+  <script src="app.js"></script>
+</body>
+</html>

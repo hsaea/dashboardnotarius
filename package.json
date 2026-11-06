@@ -1,0 +1,17 @@
+{
+  "name": "expert-docs-dashboard",
+  "version": "1.0.0",
+  "description": "Дашборд ЗП помічників нотаріуса (Kommo Expert-Docs)",
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "verify": "node scripts/verify.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.2",
+    "express-session": "^1.18.1"
+  }
+}

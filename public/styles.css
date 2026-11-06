@@ -1,0 +1,116 @@
+:root {
+  --bg: #0f1420;
+  --panel: #171e2e;
+  --panel-2: #1e2740;
+  --line: #2a3450;
+  --text: #e8edf7;
+  --muted: #8a97b4;
+  --accent: #4f8cff;
+  --accent-2: #2ecc8f;
+  --danger: #ff6b6b;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; font-family: system-ui, "Segoe UI", Roboto, sans-serif;
+  background: var(--bg); color: var(--text); font-size: 14px;
+}
+.hidden { display: none !important; }
+.muted { color: var(--muted); }
+.small { font-size: 12px; }
+.num { text-align: right; font-variant-numeric: tabular-nums; }
+.strong { font-weight: 700; color: var(--accent-2); }
+.nowrap { white-space: nowrap; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* Вхід */
+.login { min-height: 100vh; display: grid; place-items: center; }
+.login-card {
+  background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
+  padding: 32px; width: 320px; display: flex; flex-direction: column; gap: 14px;
+}
+.login-card h1 { margin: 0; font-size: 22px; }
+.login-card p { margin: 0 0 8px; }
+.login-card label { display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--muted); }
+input, select {
+  background: var(--panel-2); border: 1px solid var(--line); color: var(--text);
+  border-radius: 8px; padding: 9px 10px; font-size: 14px; outline: none;
+}
+input:focus, select:focus { border-color: var(--accent); }
+button {
+  background: var(--accent); color: #fff; border: 0; border-radius: 8px;
+  padding: 9px 14px; font-size: 14px; cursor: pointer;
+}
+button:hover { filter: brightness(1.08); }
+button:disabled { opacity: .5; cursor: default; }
+button.ghost { background: var(--panel-2); border: 1px solid var(--line); color: var(--text); }
+.error { color: var(--danger); min-height: 18px; font-size: 13px; }
+
+/* Топбар */
+.topbar {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 12px 20px; background: var(--panel); border-bottom: 1px solid var(--line);
+  position: sticky; top: 0; z-index: 10;
+}
+.brand { font-weight: 700; font-size: 16px; }
+.topbar-right { display: flex; align-items: center; gap: 12px; }
+
+.container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+h2 { margin: 24px 0 10px; font-size: 16px; }
+
+.controls {
+  display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px;
+}
+.controls label { display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: var(--muted); }
+.ceo-tools { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; margin-left: auto; }
+.rates { display: flex; gap: 10px; align-items: flex-end; }
+.rates input { width: 90px; }
+
+.badge { padding: 6px 10px; border-radius: 999px; font-size: 12px; }
+.badge.frozen { background: rgba(255,170,0,.15); color: #ffcc66; border: 1px solid #5a4a1e; }
+
+/* Таблиці */
+.table-scroll { overflow-x: auto; }
+.tbl { width: 100%; border-collapse: collapse; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.tbl th, .tbl td { padding: 9px 12px; border-bottom: 1px solid var(--line); text-align: left; }
+.tbl thead th { background: var(--panel-2); color: var(--muted); font-weight: 600; font-size: 12px; white-space: nowrap; }
+.tbl tbody tr:hover { background: rgba(79,140,255,.06); }
+.tbl tfoot .total td { background: var(--panel-2); font-weight: 700; border-top: 2px solid var(--line); }
+
+/* Поле премії в таблиці */
+.bonus-inp { width: 90px; padding: 5px 8px; text-align: right; }
+
+/* --- Мобільна оптимізація --- */
+@media (max-width: 760px) {
+  body { font-size: 15px; }
+  .topbar { padding: 10px 12px; flex-wrap: wrap; gap: 8px; }
+  .topbar-right { gap: 8px; flex-wrap: wrap; }
+  #cache-info { order: 3; flex-basis: 100%; }
+  .container { padding: 12px; }
+  h2 { margin: 18px 0 8px; }
+
+  .controls { padding: 12px; gap: 12px; }
+  .controls > label { flex: 1 1 140px; }
+  .controls select { width: 100%; }
+  .ceo-tools { margin-left: 0; flex-basis: 100%; }
+  .rates { flex-wrap: wrap; }
+  .rates label { flex: 1 1 120px; }
+  .rates input { width: 100%; }
+  #save-rates { flex: 1 1 100%; }
+
+  /* Таблиці прокручуються горизонтально; тап-ціль більша */
+  .table-scroll { -webkit-overflow-scrolling: touch; }
+  .tbl th, .tbl td { padding: 10px 10px; }
+  .bonus-inp { width: 80px; }
+  .login-card { width: 90vw; max-width: 340px; }
+
+  /* Зручні кнопки під палець */
+  button { padding: 11px 14px; }
+}
+
+@media (max-width: 420px) {
+  body { font-size: 14px; }
+  .brand { font-size: 15px; }
+  .tbl th, .tbl td { padding: 8px 8px; white-space: nowrap; }
+}
