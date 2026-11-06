@@ -10,6 +10,7 @@ const fmt = (n) => Number(n || 0).toLocaleString('uk-UA');
 
 let ME = null;
 let ASSISTANTS = [];
+let RATES = { sign_rate: 0, act_rate: 0 };
 
 function showLogin() {
   $('login-view').classList.remove('hidden');
@@ -47,10 +48,31 @@ $('month-select').addEventListener('change', reload);
 $('assistant-select').addEventListener('change', reload);
 
 $('save-rates').addEventListener('click', async () => {
-  await api('/api/settings', { method: 'PUT', body: JSON.stringify({
-    sign_rate: Number($('sign-rate').value), act_rate: Number($('act-rate').value),
-  }) });
+  const sign = Number($('sign-rate').value);
+  const act = Number($('act-rate').value);
+  if (!Number.isFinite(sign) || !Number.isFinite(act) || sign < 0 || act < 0) {
+    alert('Ставки мають бути невідʼємними числами.');
+    return;
+  }
+  if (sign === RATES.sign_rate && act === RATES.act_rate) {
+    alert('Ставки не змінилися.');
+    return;
+  }
+  const msg =
+    'Зберегти нові ставки?\n\n' +
+    `Підпис: ${RATES.sign_rate} → ${sign} грн\n` +
+    `Акт: ${RATES.act_rate} → ${act} грн\n\n` +
+    'Поточний місяць буде перерахований за новими ставками. Архівні місяці не зміняться.';
+  if (!confirm(msg)) {
+    // відновити попередні значення у полях
+    $('sign-rate').value = RATES.sign_rate;
+    $('act-rate').value = RATES.act_rate;
+    return;
+  }
+  const r = await api('/api/settings', { method: 'PUT', body: JSON.stringify({ sign_rate: sign, act_rate: act }) });
+  RATES = { sign_rate: r.settings.sign_rate, act_rate: r.settings.act_rate };
   await reload();
+  alert('Ставки збережено.');
 });
 
 // --- Ініціалізація ---
@@ -75,6 +97,7 @@ async function init() {
 
   // Ставки
   const s = await api('/api/settings');
+  RATES = { sign_rate: s.settings.sign_rate, act_rate: s.settings.act_rate };
   $('sign-rate').value = s.settings.sign_rate;
   $('act-rate').value = s.settings.act_rate;
 
