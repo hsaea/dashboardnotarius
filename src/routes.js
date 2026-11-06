@@ -86,8 +86,8 @@ router.get('/summary', requireAuth, async (req, res, next) => {
   } catch (e) { next(e); }
 });
 
-// --- Журнал угод (лог) ---
-router.get('/ledger', requireAuth, async (req, res, next) => {
+// --- Журнал угод (лог) — лише CEO ---
+router.get('/ledger', requireAuth, requireCeo, async (req, res, next) => {
   try {
     await ensureFresh();
     const month = req.query.month || currentMonthKey();
@@ -144,6 +144,10 @@ router.get('/export', requireAuth, async (req, res, next) => {
     const month = req.query.month || currentMonthKey();
     const assistant = scopeAssistant(req, req.query.assistant || null);
     const type = req.query.type === 'summary' ? 'summary' : 'ledger';
+    // Журнал (логи) експортує лише CEO
+    if (type === 'ledger' && req.session.user.role !== 'ceo') {
+      return res.status(403).json({ error: 'forbidden' });
+    }
     const { frozen, rates } = await resolveMonth(month);
     const deals = await getDealsForMonth(month, { frozen, assistant });
 

@@ -105,6 +105,11 @@ async function init() {
   $('ceo-tools').classList.toggle('hidden', !isCeo);
   $('assistant-filter-wrap').classList.toggle('hidden', !isCeo);
 
+  // Журнал угод (логи) — лише для CEO
+  $('ledger-heading').classList.toggle('hidden', !isCeo);
+  $('ledger-wrap').classList.add('hidden');
+  $('exp-ledger').classList.toggle('hidden', !isCeo);
+
   // Фільтр помічників (лише CEO)
   if (isCeo) {
     const sel = $('assistant-select');
@@ -141,8 +146,11 @@ async function reload() {
   const sum = await api('/api/summary?' + q.toString());
   renderSummary(sum);
 
-  const led = await api('/api/ledger?' + q.toString());
-  renderLedger(led);
+  // Журнал — лише CEO
+  if (ME.role === 'ceo') {
+    const led = await api('/api/ledger?' + q.toString());
+    renderLedger(led);
+  }
 
   // Аналітика (не ламає сторінку при помилці)
   loadTrends().catch(() => {});
