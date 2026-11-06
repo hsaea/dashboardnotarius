@@ -3,6 +3,7 @@ import { syncFromKommo, ensureFresh, syncStatus } from './sync.js';
 import {
   getSettings, setSettings, getBonuses, setBonus,
   getDealsForMonth, listMonths, listClosedMonths, getMonthlyClose,
+  getDocTypeBreakdown,
 } from './db.js';
 import { summarize, ledger, totals } from './aggregate.js';
 import { login, requireAuth, requireCeo, scopeAssistant } from './auth.js';
@@ -95,6 +96,75 @@ router.get('/ledger', requireAuth, async (req, res, next) => {
     const deals = await getDealsForMonth(month, { frozen, assistant });
     const rows = ledger(deals, rates, { month, assistant });
     res.json({ month, assistant, frozen, rows });
+  } catch (e) { next(e); }
+});
+
+// --- Аналітика: динаміка по місяцях ---
+router.get('/trends', requireAuth, async (req, res, next) => {
+  try {
+    await ensureFresh();
+    const assistant = scopeAssistant(req, req.query.assistant || null);
+    const months = await listMonths();
+    const all = [...new Set([currentMonthKey(), ...months])].sort(); // за зростанням
+    const series = [];
+    for (const m of all) {
+      const { frozen, rates } = await resolveMonth(m);
+      const deals = await getDealsForMonth(m, { frozen, assistant });
+      const t = totals(summarize(deals, rates, { month: m, assistant }));
+      series.push({ month: m, acts: t.acts, signs: t.signs, deals: t.deals, salary: t.salary });
+    }
+    res.json({ assistant, series });
+  } catch (e) { next(e); }
+});
+
+// --- Аналітика: розбивка по типах документів ---
+router.get('/doctypes', requireAuth, async (req, res, next) => {
+  try {
+    await ensureFresh();
+    const month = req.query.month || currentMonthKey();
+    const assistant = scopeAssistant(req, req.query.assistant || null);
+    const { frozen } = await resolveMonth(month);
+    const rows = await getDocTypeBreakdown(month, { frozen, assistant });
+    res.json({ month, assistant, rows });
+  } catch (e) { next(e); }
+});
+
+// --- Експорт у CSV (Excel) ---
+function toCsv(headers, rows) {
+  const esc = (v) => {
+    const s = String(v ?? '');
+    return /[",\n;]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  };
+  return [headers, ...rows].map((r) => r.map(esc).join(';')).join('\r\n');
+}
+
+router.get('/export', requireAuth, async (req, res, next) => {
+  try {
+    await ensureFresh();
+    const month = req.query.month || currentMonthKey();
+    const assistant = scopeAssistant(req, req.query.assistant || null);
+    const type = req.query.type === 'summary' ? 'summary' : 'ledger';
+    const { frozen, rates } = await resolveMonth(month);
+    const deals = await getDealsForMonth(month, { frozen, assistant });
+
+    let headers, lines;
+    if (type === 'summary') {
+      const bonuses = await getBonuses(month);
+      const rows = withBonus(summarize(deals, rates, { month, assistant }), bonuses);
+      headers = ['Помічник', 'Акти', 'Підписи', 'Угод', 'Бюджет', 'ЗП', 'Премія', 'Разом'];
+      lines = rows.map((r) => [r.assistant, r.acts, r.signs, r.deals, r.budget, r.salary, r.bonus, r.total]);
+    } else {
+      const rows = ledger(deals, rates, { month, assistant });
+      headers = ['Назва', 'Бюджет', 'Хто готує довіреність', 'К-ть актів', 'К-ть підписів',
+        'Тип документа', 'Час', 'ID угоди', 'Посилання', 'ЗП'];
+      lines = rows.map((r) => [r.name, r.budget, r.who, r.acts, r.signs, r.doc_type, r.time, r.id, r.url, r.salary]);
+    }
+
+    const csv = '﻿' + toCsv(headers, lines); // BOM для коректної кирилиці в Excel
+    const fname = `${type}-${month}${assistant ? '-' + assistant : ''}.csv`;
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="export.csv"; filename*=UTF-8''${encodeURIComponent(fname)}`);
+    res.send(csv);
   } catch (e) { next(e); }
 });
 

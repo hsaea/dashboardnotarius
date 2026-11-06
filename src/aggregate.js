@@ -52,6 +52,7 @@ export function ledger(leads, rates, { month = null, assistant = null } = {}) {
       who: l.who,                   // Хто готує довіреність?
       acts: l.acts,                 // К-ть актів
       signs: l.signs,               // К-ть підписів
+      doc_type: l.doc_type || '',   // Тип документа
       time: fmtDateTime(l.closed_at), // time
       time_ts: l.closed_at,
       id: l.id,                     // id угоди

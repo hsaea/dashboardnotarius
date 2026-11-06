@@ -41,6 +41,11 @@
         </label>
         <span id="frozen-badge" class="badge frozen hidden">🔒 Місяць у архіві (закрито)</span>
 
+        <div class="export-btns">
+          <button id="exp-ledger" class="ghost" title="Завантажити журнал у CSV">⤓ Журнал CSV</button>
+          <button id="exp-summary" class="ghost" title="Завантажити підсумки у CSV">⤓ Підсумки CSV</button>
+        </div>
+
         <!-- Блок CEO -->
         <div id="ceo-tools" class="ceo-tools hidden">
           <div class="rates">
@@ -65,6 +70,26 @@
         <tbody></tbody>
         <tfoot></tfoot>
       </table>
+      </div>
+
+      <!-- Аналітика -->
+      <h2>Аналітика</h2>
+      <div class="analytics">
+        <div class="card">
+          <h3>Динаміка по місяцях: акти та підписи</h3>
+          <div id="chart-acts-signs"></div>
+          <h3 style="margin-top:14px">ЗП по місяцях</h3>
+          <div id="chart-salary"></div>
+        </div>
+        <div class="card">
+          <h3>Типи документів <span class="muted small" id="dt-month"></span></h3>
+          <div class="table-scroll">
+            <table class="tbl" id="doctypes-table">
+              <thead><tr><th>Тип документа</th><th>Угод</th><th>Акти</th><th>Підписи</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
       </div>
 
       <!-- Журнал (лог) -->

@@ -22,6 +22,7 @@ export async function syncFromKommo() {
           price: Math.round(Number(l.price) || 0),
           acts: Math.round(Number(l.acts) || 0),
           signs: Math.round(Number(l.signs) || 0),
+          doc_type: l.doc_type ? String(l.doc_type).slice(0, 120) : null,
           month: monthKey(l.closed_at),
         }));
       await upsertDeals(withMonth, syncTs);

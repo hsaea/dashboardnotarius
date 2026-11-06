@@ -47,6 +47,17 @@ $('refresh-btn').addEventListener('click', async () => {
 $('month-select').addEventListener('change', reload);
 $('assistant-select').addEventListener('change', reload);
 
+// --- Експорт у CSV ---
+function downloadExport(type) {
+  const month = $('month-select').value;
+  const assistant = ME.role === 'ceo' ? $('assistant-select').value : '';
+  const q = new URLSearchParams({ type, month });
+  if (assistant) q.set('assistant', assistant);
+  window.location.href = '/api/export?' + q.toString();
+}
+$('exp-ledger').addEventListener('click', () => downloadExport('ledger'));
+$('exp-summary').addEventListener('click', () => downloadExport('summary'));
+
 $('save-rates').addEventListener('click', async () => {
   const sign = Number($('sign-rate').value);
   const act = Number($('act-rate').value);
@@ -127,6 +138,10 @@ async function reload() {
   const led = await api('/api/ledger?' + q.toString());
   renderLedger(led);
 
+  // Аналітика (не ламає сторінку при помилці)
+  loadTrends().catch(() => {});
+  loadDocTypes().catch(() => {});
+
   // Бейдж архіву (місяць закрито автоматично)
   $('frozen-badge').classList.toggle('hidden', !sum.frozen);
 }
@@ -190,6 +205,57 @@ function renderLedger(data) {
       <td class="num">${fmt(r.salary)}</td>
       <td><a href="${r.url}" target="_blank" rel="noopener">угода ↗</a></td>
     </tr>`).join('') || `<tr><td colspan="9" class="muted">Немає угод</td></tr>`;
+}
+
+// --- Аналітика: графіки та типи документів ---
+function barChart(months, seriesDefs, { height = 170, fmt: fmtFn = (v) => v } = {}) {
+  if (!months.length) return '<div class="muted">Немає даних</div>';
+  const max = Math.max(1, ...months.flatMap((m) => seriesDefs.map((s) => m[s.key] || 0)));
+  const nS = seriesDefs.length;
+  const groupW = 46, gap = 16, barW = Math.max(6, (groupW - (nS - 1) * 2) / nS);
+  const W = 36 + months.length * (groupW + gap), H = height, base = H - 24, top = 12;
+  const scale = (v) => (base - top) * (v / max);
+  let bars = '';
+  months.forEach((m, i) => {
+    const gx = 30 + i * (groupW + gap);
+    seriesDefs.forEach((s, j) => {
+      const v = m[s.key] || 0, h = scale(v), x = gx + j * (barW + 2);
+      bars += `<rect x="${x.toFixed(1)}" y="${(base - h).toFixed(1)}" width="${barW.toFixed(1)}" height="${h.toFixed(1)}" rx="2" fill="${s.color}"><title>${m.month} · ${s.label}: ${fmtFn(v)}</title></rect>`;
+    });
+    bars += `<text x="${gx + (groupW) / 2}" y="${H - 7}" text-anchor="middle" class="axlbl">${m.month.slice(2)}</text>`;
+  });
+  const legend = seriesDefs.map((s) => `<span class="lg"><i style="background:${s.color}"></i>${s.label}</span>`).join('');
+  return `<div class="legend">${legend}</div><svg viewBox="0 0 ${W} ${H}" class="chart" preserveAspectRatio="xMinYMid meet">${bars}</svg>`;
+}
+
+async function loadTrends() {
+  const assistant = ME.role === 'ceo' ? $('assistant-select').value : '';
+  const q = new URLSearchParams();
+  if (assistant) q.set('assistant', assistant);
+  const { series } = await api('/api/trends?' + q.toString());
+  $('chart-acts-signs').innerHTML = barChart(series, [
+    { key: 'signs', color: '#4f8cff', label: 'Підписи' },
+    { key: 'acts', color: '#2ecc8f', label: 'Акти' },
+  ]);
+  $('chart-salary').innerHTML = barChart(series, [
+    { key: 'salary', color: '#ffb020', label: 'ЗП, грн' },
+  ], { fmt });
+}
+
+async function loadDocTypes() {
+  const month = $('month-select').value;
+  const assistant = ME.role === 'ceo' ? $('assistant-select').value : '';
+  const q = new URLSearchParams({ month });
+  if (assistant) q.set('assistant', assistant);
+  const { rows } = await api('/api/doctypes?' + q.toString());
+  $('dt-month').textContent = month;
+  const tb = $('doctypes-table').querySelector('tbody');
+  tb.innerHTML = rows.map((r) => `
+    <tr><td>${escapeHtml(r.doc_type)}</td>
+      <td class="num">${fmt(r.deals)}</td>
+      <td class="num">${fmt(r.acts)}</td>
+      <td class="num">${fmt(r.signs)}</td></tr>`).join('') ||
+    `<tr><td colspan="4" class="muted">Немає даних за цей період</td></tr>`;
 }
 
 async function refreshStatus() {

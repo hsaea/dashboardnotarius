@@ -59,6 +59,7 @@ async function createSchema() {
     signs INT DEFAULT 0,
     closed_at BIGINT,
     month CHAR(7),
+    doc_type VARCHAR(120) NULL,
     missing TINYINT DEFAULT 0,
     missing_since BIGINT NULL,
     locked TINYINT DEFAULT 0,
@@ -131,9 +132,18 @@ async function seedUsers() {
   console.log('\n=== СТВОРЕНО АКАУНТИ ===\n' + lines.join('\n') + `\n(також у ${CREDS_FILE})\n`);
 }
 
+// Додає колонку, якщо її ще немає (для оновлення наявної БД; MySQL 5.7 без IF NOT EXISTS)
+async function ensureColumn(table, col, def) {
+  const rows = await q(
+    `SELECT COUNT(*) AS c FROM information_schema.COLUMNS
+     WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME=? AND COLUMN_NAME=?`, [table, col]);
+  if (rows[0].c === 0) await q(`ALTER TABLE ${table} ADD COLUMN ${col} ${def}`);
+}
+
 export async function initDb() {
   getPool();
   await createSchema();
+  await ensureColumn('deals', 'doc_type', 'VARCHAR(120) NULL');
   await migrateFromJson();
   await ensureSettings();
   await seedUsers();
@@ -179,6 +189,7 @@ function normalizeRow(r) {
   return {
     id: Number(r.id), name: r.name, price: r.budget, who: r.who,
     acts: r.acts, signs: r.signs, closed_at: Number(r.closed_at),
+    doc_type: r.doc_type || null,
     missing: !!r.missing, locked: !!r.locked, url: leadUrl(r.id),
   };
 }
@@ -197,6 +208,22 @@ export async function getDealsForMonth(month, { frozen, assistant = null } = {})
 export async function listMonths() {
   const rows = await q('SELECT DISTINCT month FROM deals WHERE month IS NOT NULL ORDER BY month DESC');
   return rows.map((r) => r.month);
+}
+
+// Розбивка по типах документів за місяць
+export async function getDocTypeBreakdown(month, { frozen, assistant = null } = {}) {
+  const cond = frozen ? 'locked=1' : 'missing=0';
+  const params = [month];
+  let sql = `SELECT COALESCE(doc_type,'(без типу)') AS doc_type,
+                    COUNT(*) AS deals, SUM(acts) AS acts, SUM(signs) AS signs
+             FROM deals WHERE month=? AND ${cond}`;
+  if (assistant) { sql += ' AND who=?'; params.push(assistant); }
+  sql += ' GROUP BY doc_type ORDER BY deals DESC';
+  const rows = await q(sql, params);
+  return rows.map((r) => ({
+    doc_type: r.doc_type, deals: Number(r.deals),
+    acts: Number(r.acts || 0), signs: Number(r.signs || 0),
+  }));
 }
 
 // --- Заморозка місяців ---
@@ -218,12 +245,12 @@ export async function closeMonth(month, rates, nowSec) {
 // --- Синхронізація: UPSERT пачки угод і позначення зниклих ---
 export async function upsertDeals(deals, syncTs) {
   for (const d of deals) {
-    await q(`INSERT INTO deals (id,name,budget,who,acts,signs,closed_at,month,missing,missing_since,first_seen,last_seen)
-             VALUES (?,?,?,?,?,?,?,?,0,NULL,?,?)
+    await q(`INSERT INTO deals (id,name,budget,who,acts,signs,closed_at,month,doc_type,missing,missing_since,first_seen,last_seen)
+             VALUES (?,?,?,?,?,?,?,?,?,0,NULL,?,?)
              ON DUPLICATE KEY UPDATE name=VALUES(name), budget=VALUES(budget), who=VALUES(who),
                acts=VALUES(acts), signs=VALUES(signs), closed_at=VALUES(closed_at), month=VALUES(month),
-               missing=0, missing_since=NULL, last_seen=VALUES(last_seen)`,
-      [d.id, d.name, d.price, d.who, d.acts, d.signs, d.closed_at, d.month, syncTs, syncTs]);
+               doc_type=VALUES(doc_type), missing=0, missing_since=NULL, last_seen=VALUES(last_seen)`,
+      [d.id, d.name, d.price, d.who, d.acts, d.signs, d.closed_at, d.month, d.doc_type || null, syncTs, syncTs]);
   }
 }
 // Угоди у вікні, яких не було в цій синхронізації -> позначити missing (але не видаляти)

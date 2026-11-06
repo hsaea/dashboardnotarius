@@ -16,6 +16,8 @@ function normalize(lead) {
     who: cfValue(lead, FIELDS.who) || null,  // Хто готує довіреність?
     acts: Number(cfValue(lead, FIELDS.acts) || 0),
     signs: Number(cfValue(lead, FIELDS.signs) || 0),
+    doc_type: cfValue(lead, FIELDS.docType) || null, // Тип документа
+
     closed_at: lead.closed_at || lead.updated_at,
     url: leadUrl(lead.id),
   };
