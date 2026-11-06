@@ -87,7 +87,10 @@ h2 { margin: 24px 0 10px; font-size: 16px; }
 .export-btns { display: flex; gap: 8px; margin-left: auto; align-items: flex-end; }
 
 /* Аналітика */
-.analytics { display: grid; grid-template-columns: 1.4fr 1fr; gap: 16px; }
+.analytics { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
+/* Таблиця типів документів — компактна, зі скролом */
+.dt-scroll { max-height: 240px; overflow-y: auto; }
+.dt-scroll thead th { position: sticky; top: 0; }
 .analytics .card {
   background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px;
 }
