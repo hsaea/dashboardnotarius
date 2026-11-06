@@ -93,8 +93,11 @@
       </div>
 
       <!-- Журнал (лог) -->
-      <h2>Журнал угод <span class="muted small" id="ledger-count"></span></h2>
-      <div class="table-scroll">
+      <h2 class="collapsible-h">
+        Журнал угод <span class="muted small" id="ledger-count"></span>
+        <button id="toggle-ledger" class="ghost btn-sm">Розгорнути</button>
+      </h2>
+      <div class="table-scroll hidden" id="ledger-wrap">
         <table class="tbl" id="ledger-table">
           <thead>
             <tr>

@@ -58,6 +58,12 @@ function downloadExport(type) {
 $('exp-ledger').addEventListener('click', () => downloadExport('ledger'));
 $('exp-summary').addEventListener('click', () => downloadExport('summary'));
 
+// --- Згортання журналу ---
+$('toggle-ledger').addEventListener('click', () => {
+  const hidden = $('ledger-wrap').classList.toggle('hidden');
+  $('toggle-ledger').textContent = hidden ? 'Розгорнути' : 'Згорнути';
+});
+
 $('save-rates').addEventListener('click', async () => {
   const sign = Number($('sign-rate').value);
   const act = Number($('act-rate').value);
