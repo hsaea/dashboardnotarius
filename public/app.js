@@ -64,6 +64,12 @@ $('toggle-ledger').addEventListener('click', () => {
   $('toggle-ledger').textContent = hidden ? 'Розгорнути' : 'Згорнути';
 });
 
+// --- Згортання аналітики ---
+$('toggle-analytics').addEventListener('click', () => {
+  const hidden = $('analytics-wrap').classList.toggle('hidden');
+  $('toggle-analytics').textContent = hidden ? 'Розгорнути' : 'Згорнути';
+});
+
 $('save-rates').addEventListener('click', async () => {
   const sign = Number($('sign-rate').value);
   const act = Number($('act-rate').value);
@@ -250,10 +256,33 @@ async function loadTrends() {
   $('chart-acts-signs').innerHTML = barChart(series, [
     { key: 'signs', color: '#4f8cff', label: 'Підписи' },
     { key: 'acts', color: '#2ecc8f', label: 'Акти' },
-  ]);
+  ], { height: 120 });
   $('chart-salary').innerHTML = barChart(series, [
     { key: 'salary', color: '#ffb020', label: 'ЗП, грн' },
-  ], { fmt });
+  ], { height: 120, fmt });
+}
+
+// Кругова (donut) діаграма
+const PIE_COLORS = ['#4f8cff', '#2ecc8f', '#ffb020', '#ff6b6b', '#a66cff', '#19c3d6', '#8a97b4'];
+function pieChart(items, { size = 150 } = {}) {
+  const total = items.reduce((s, i) => s + i.value, 0);
+  if (!total) return '<div class="muted">Немає даних</div>';
+  const cx = size / 2, cy = size / 2, r = size / 2 - 2, rin = r * 0.56;
+  let a0 = -Math.PI / 2, paths = '';
+  items.forEach((it, idx) => {
+    const frac = it.value / total;
+    const a1 = a0 + frac * 2 * Math.PI;
+    const large = (a1 - a0) > Math.PI ? 1 : 0;
+    const p = (ang, rad) => [cx + rad * Math.cos(ang), cy + rad * Math.sin(ang)];
+    const [x0, y0] = p(a0, r), [x1, y1] = p(a1, r);
+    const [xi1, yi1] = p(a1, rin), [xi0, yi0] = p(a0, rin);
+    const color = it.color || PIE_COLORS[idx % PIE_COLORS.length];
+    paths += `<path d="M${x0.toFixed(1)} ${y0.toFixed(1)} A${r} ${r} 0 ${large} 1 ${x1.toFixed(1)} ${y1.toFixed(1)} L${xi1.toFixed(1)} ${yi1.toFixed(1)} A${rin} ${rin} 0 ${large} 0 ${xi0.toFixed(1)} ${yi0.toFixed(1)} Z" fill="${color}"><title>${escapeHtml(it.label)}: ${it.value} (${Math.round(frac * 100)}%)</title></path>`;
+    a0 = a1;
+  });
+  const legend = items.map((it, idx) =>
+    `<span class="lg"><i style="background:${it.color || PIE_COLORS[idx % PIE_COLORS.length]}"></i>${escapeHtml(it.label)} — ${it.value}</span>`).join('');
+  return `<div class="pie-wrap"><svg viewBox="0 0 ${size} ${size}" class="pie">${paths}</svg><div class="legend pie-legend">${legend}</div></div>`;
 }
 
 async function loadDocTypes() {
@@ -263,6 +292,14 @@ async function loadDocTypes() {
   if (assistant) q.set('assistant', assistant);
   const { rows } = await api('/api/doctypes?' + q.toString());
   $('dt-month').textContent = month;
+
+  // Кругова діаграма: топ-6 типів + «Інші»
+  const short = (s) => { const t = String(s || ''); return t.length > 26 ? t.slice(0, 25) + '…' : t; };
+  const top = rows.slice(0, 6).map((r) => ({ label: short(r.doc_type), value: r.deals }));
+  const restVal = rows.slice(6).reduce((s, r) => s + r.deals, 0);
+  if (restVal > 0) top.push({ label: 'Інші', value: restVal });
+  $('doctypes-pie').innerHTML = pieChart(top);
+
   const tb = $('doctypes-table').querySelector('tbody');
   tb.innerHTML = rows.map((r) => `
     <tr><td>${escapeHtml(r.doc_type)}</td>
