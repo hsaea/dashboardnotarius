@@ -86,14 +86,12 @@ h2 { margin: 24px 0 10px; font-size: 16px; }
 /* Експорт-кнопки */
 .export-btns { display: flex; gap: 8px; margin-left: auto; align-items: flex-end; }
 
-/* Аналітика */
-.analytics { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
-/* Таблиця типів документів — компактна, зі скролом */
-.dt-scroll { max-height: 240px; overflow-y: auto; }
-.dt-scroll thead th { position: sticky; top: 0; }
+/* Аналітика — рівні кругові плитки */
+.analytics { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; align-items: stretch; }
 .analytics .card {
   background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px;
 }
+.tile { display: flex; flex-direction: column; }
 .analytics h3 { margin: 0 0 8px; font-size: 14px; color: var(--muted); font-weight: 600; }
 .chart { display: block; height: 130px; width: auto; max-width: 100%; }
 .chart .axlbl { fill: var(--muted); font-size: 9px; }
@@ -101,10 +99,10 @@ h2 { margin: 24px 0 10px; font-size: 16px; }
 .legend .lg { display: inline-flex; align-items: center; gap: 5px; }
 .legend .lg i { width: 10px; height: 10px; border-radius: 2px; display: inline-block; flex: 0 0 auto; }
 
-/* Кругова діаграма */
-.pie-wrap { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 10px; }
-.pie { width: 150px; height: 150px; flex: 0 0 auto; }
-.pie-legend { flex: 1; min-width: 160px; margin: 0; }
+/* Кругова діаграма (у плитці — донат зверху, легенда під ним) */
+.pie-wrap { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 6px; }
+.pie { width: 130px; height: 130px; flex: 0 0 auto; }
+.pie-legend { width: 100%; justify-content: center; }
 
 /* --- Мобільна оптимізація --- */
 @media (max-width: 760px) {

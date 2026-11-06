@@ -78,21 +78,17 @@
         <button id="toggle-analytics" class="ghost btn-sm">Розгорнути</button>
       </h2>
       <div class="analytics hidden" id="analytics-wrap">
-        <div class="card">
-          <h3>Динаміка по місяцях: акти та підписи</h3>
-          <div id="chart-acts-signs"></div>
-          <h3 style="margin-top:14px">ЗП по місяцях</h3>
-          <div id="chart-salary"></div>
+        <div class="card tile hidden" id="tile-assistants">
+          <h3>Частка помічників (ЗП)</h3>
+          <div id="pie-assistants"></div>
         </div>
-        <div class="card">
+        <div class="card tile">
+          <h3>Акти та підписи</h3>
+          <div id="pie-actsigns"></div>
+        </div>
+        <div class="card tile">
           <h3>Типи документів <span class="muted small" id="dt-month"></span></h3>
-          <div id="doctypes-pie"></div>
-          <div class="table-scroll dt-scroll">
-            <table class="tbl" id="doctypes-table">
-              <thead><tr><th>Тип документа</th><th>Угод</th><th>Акти</th><th>Підписи</th></tr></thead>
-              <tbody></tbody>
-            </table>
-          </div>
+          <div id="pie-doctypes"></div>
         </div>
       </div>
 
