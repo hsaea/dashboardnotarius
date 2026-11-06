@@ -1,10 +1,9 @@
 // Незалежна перевірка агрегатів напряму з Kommo API (крос-чек дашборда).
 // Запуск: node scripts/verify.js
 import { fetchWonLeads } from '../src/kommo.js';
-import { sinceEpoch, monthKey, SINCE_MONTH, TZ } from '../src/config.js';
-import { getSettings } from '../src/store.js';
+import { sinceEpoch, monthKey, SINCE_MONTH, TZ, DEFAULT_SIGN_RATE, DEFAULT_ACT_RATE } from '../src/config.js';
 
-const rates = getSettings();
+const rates = { sign_rate: DEFAULT_SIGN_RATE, act_rate: DEFAULT_ACT_RATE };
 console.log(`Період з ${SINCE_MONTH}, пояс ${TZ}, ставки: підпис ${rates.sign_rate} / акт ${rates.act_rate} грн\n`);
 
 const leads = await fetchWonLeads(sinceEpoch());

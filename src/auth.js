@@ -1,7 +1,7 @@
-import { findUser, checkPassword } from './store.js';
+import { findUser, checkPassword } from './db.js';
 
-export function login(req, loginName, password) {
-  const user = findUser(loginName);
+export async function login(req, loginName, password) {
+  const user = await findUser(loginName);
   if (!user || !checkPassword(user, password)) return null;
   req.session.user = {
     login: user.login,
@@ -24,6 +24,6 @@ export function requireCeo(req, res, next) {
 // Помічник бачить лише себе: примусово підставляє його імʼя у фільтр assistant
 export function scopeAssistant(req, requested) {
   const u = req.session.user;
-  if (u.role === 'ceo') return requested || null; // CEO: як запросив (або всі)
-  return u.assistant_name;                         // assistant: завжди лише він
+  if (u.role === 'ceo') return requested || null;
+  return u.assistant_name;
 }

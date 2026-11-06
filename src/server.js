@@ -3,9 +3,9 @@ import session from 'express-session';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { PORT, SESSION_SECRET, SINCE_MONTH, TZ } from './config.js';
-import { seedUsers } from './store.js';
+import { initDb } from './db.js';
 import { router as api } from './routes.js';
-import { getLeads } from './cache.js';
+import { syncFromKommo, scheduleSync } from './sync.js';
 import { archivePastMonths, scheduleMonthlyArchive } from './archive.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -43,22 +43,37 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'server_error', message: err.message });
 });
 
-// Старт
-seedUsers();
 // Хостинг (adm.tools/Passenger) передає порт і хост через process.env.PORT / process.env.HOST
 const LISTEN_PORT = process.env.PORT || PORT;
 const LISTEN_HOST = process.env.HOST || undefined; // порожній HOST => усі інтерфейси
 const listenArgs = LISTEN_HOST ? [LISTEN_PORT, LISTEN_HOST] : [LISTEN_PORT];
-app.listen(...listenArgs, () => {
-  console.log(`\nДашборд Expert-Docs запущено на ${LISTEN_HOST || '0.0.0.0'}:${LISTEN_PORT}`);
-  console.log(`Період з: ${SINCE_MONTH} | Пояс: ${TZ}`);
-  // Прогріваємо кеш, тоді автоархівуємо завершені місяці й запускаємо щогодинну перевірку
-  getLeads()
-    .then(async (l) => {
-      console.log(`Кеш Kommo прогріто: ${l.length} угод`);
+
+// Старт: БД -> перша синхронізація з Kommo -> автоархів -> планувальники
+async function start() {
+  await initDb();
+  console.log('БД готова');
+
+  app.listen(...listenArgs, () => {
+    console.log(`\nДашборд Expert-Docs запущено на ${LISTEN_HOST || '0.0.0.0'}:${LISTEN_PORT}`);
+    console.log(`Період з: ${SINCE_MONTH} | Пояс: ${TZ}`);
+  });
+
+  // Синхронізація та архів — у фоні, щоб не блокувати старт
+  (async () => {
+    try {
+      const r = await syncFromKommo();
+      console.log(`Синхронізація з Kommo: ${r.synced} угод (missing: ${r.missing})`);
       const archived = await archivePastMonths();
       if (archived.length) console.log('Заархівовано місяців:', archived.join(', '));
-      scheduleMonthlyArchive();
-    })
-    .catch((e) => console.error('Не вдалося прогріти кеш:', e.message));
+    } catch (e) {
+      console.error('Помилка першої синхронізації:', e.message);
+    }
+    scheduleSync();
+    scheduleMonthlyArchive();
+  })();
+}
+
+start().catch((e) => {
+  console.error('Фатальна помилка старту:', e.message);
+  process.exit(1);
 });

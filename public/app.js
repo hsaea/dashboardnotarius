@@ -172,7 +172,7 @@ function renderLedger(data) {
 async function refreshStatus() {
   try {
     const { cache } = await api('/api/status');
-    const when = cache.fetchedAt ? new Date(cache.fetchedAt).toLocaleTimeString('uk-UA') : '—';
+    const when = cache.syncedAt ? new Date(cache.syncedAt).toLocaleTimeString('uk-UA') : '—';
     const countPart = cache.count != null ? `дані: ${cache.count} угод, ` : '';
     $('cache-info').textContent = `${countPart}оновлено ${when}` + (cache.error ? ` ⚠ ${cache.error}` : '');
   } catch {}

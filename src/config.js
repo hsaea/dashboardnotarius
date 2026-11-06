@@ -24,10 +24,18 @@ export const TZ = process.env.TZ_REGION || 'Europe/Kyiv';
 export const SINCE_MONTH = process.env.SINCE_MONTH || '2026-10';
 export const PORT = Number(process.env.PORT || 3000);
 export const SESSION_SECRET = process.env.SESSION_SECRET || 'dev-secret-change-me';
-export const CACHE_TTL = Number(process.env.CACHE_TTL || 600) * 1000;
+export const SYNC_INTERVAL = Number(process.env.SYNC_INTERVAL || process.env.CACHE_TTL || 600) * 1000;
 
 export const DEFAULT_SIGN_RATE = Number(process.env.SIGN_RATE || 220);
 export const DEFAULT_ACT_RATE = Number(process.env.ACT_RATE || 330);
+
+export const DB = {
+  host: process.env.DB_HOST || 'localhost',
+  port: Number(process.env.DB_PORT || 3306),
+  database: process.env.DB_NAME || '',
+  user: process.env.DB_USER || '',
+  password: process.env.DB_PASSWORD || '',
+};
 
 // Початок періоду (SINCE_MONTH) як Unix timestamp у поясі Києва
 export function sinceEpoch() {
