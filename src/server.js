@@ -45,10 +45,12 @@ app.use((err, req, res, next) => {
 
 // Старт
 seedUsers();
-// Passenger/cPanel передає порт (або сокет) через process.env.PORT — слухаємо саме його
-const LISTEN = process.env.PORT || PORT;
-app.listen(LISTEN, () => {
-  console.log(`\nДашборд Expert-Docs запущено на ${LISTEN}`);
+// Хостинг (adm.tools/Passenger) передає порт і хост через process.env.PORT / process.env.HOST
+const LISTEN_PORT = process.env.PORT || PORT;
+const LISTEN_HOST = process.env.HOST || undefined; // порожній HOST => усі інтерфейси
+const listenArgs = LISTEN_HOST ? [LISTEN_PORT, LISTEN_HOST] : [LISTEN_PORT];
+app.listen(...listenArgs, () => {
+  console.log(`\nДашборд Expert-Docs запущено на ${LISTEN_HOST || '0.0.0.0'}:${LISTEN_PORT}`);
   console.log(`Період з: ${SINCE_MONTH} | Пояс: ${TZ}`);
   // Прогріваємо кеш, тоді автоархівуємо завершені місяці й запускаємо щогодинну перевірку
   getLeads()
