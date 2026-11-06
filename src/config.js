@@ -35,6 +35,8 @@ export const DB = {
   database: process.env.DB_NAME || '',
   user: process.env.DB_USER || '',
   password: process.env.DB_PASSWORD || '',
+  // Якщо користувач має доступ лише через сокет (@'localhost'): вкажіть DB_SOCKET
+  socketPath: process.env.DB_SOCKET || undefined,
 };
 
 // Початок періоду (SINCE_MONTH) як Unix timestamp у поясі Києва

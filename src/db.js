@@ -16,11 +16,13 @@ let pool;
 export function getPool() {
   if (!pool) {
     if (!DB.database) throw new Error('DB_NAME не заданий у .env');
-    pool = mysql.createPool({
-      host: DB.host, port: DB.port, user: DB.user,
-      password: DB.password, database: DB.database,
+    const cfg = {
+      user: DB.user, password: DB.password, database: DB.database,
       charset: 'utf8mb4', connectionLimit: 5, waitForConnections: true,
-    });
+    };
+    if (DB.socketPath) cfg.socketPath = DB.socketPath; // через сокет (@'localhost')
+    else { cfg.host = DB.host; cfg.port = DB.port; }    // через TCP
+    pool = mysql.createPool(cfg);
   }
   return pool;
 }
