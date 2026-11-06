@@ -3,7 +3,7 @@ import { syncFromKommo, ensureFresh, syncStatus } from './sync.js';
 import {
   getSettings, setSettings, getBonuses, setBonus,
   getDealsForMonth, listMonths, listClosedMonths, getMonthlyClose,
-  getDocTypeBreakdown,
+  getDocTypeBreakdown, listWidgets, regenWidgetToken,
 } from './db.js';
 import { summarize, ledger, totals } from './aggregate.js';
 import { login, requireAuth, requireCeo, scopeAssistant } from './auth.js';
@@ -191,6 +191,17 @@ router.put('/bonus', requireAuth, requireCeo, async (req, res, next) => {
     if (!month || !assistant) return res.status(400).json({ error: 'bad_request' });
     const bonuses = await setBonus(month, assistant, Number.isFinite(amount) ? amount : 0);
     res.json({ month, bonuses });
+  } catch (e) { next(e); }
+});
+
+// --- Посилання-віджети менеджерів (лише CEO) ---
+router.get('/widgets', requireAuth, requireCeo, async (req, res, next) => {
+  try { res.json({ widgets: await listWidgets() }); } catch (e) { next(e); }
+});
+router.post('/widgets/:login/regen', requireAuth, requireCeo, async (req, res, next) => {
+  try {
+    const token = await regenWidgetToken(req.params.login);
+    res.json({ login: req.params.login, token });
   } catch (e) { next(e); }
 });
 

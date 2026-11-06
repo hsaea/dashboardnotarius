@@ -7,6 +7,7 @@ import { initDb } from './db.js';
 import { router as api } from './routes.js';
 import { syncFromKommo, scheduleSync } from './sync.js';
 import { archivePastMonths, scheduleMonthlyArchive } from './archive.js';
+import { widgetPage } from './widget.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -33,6 +34,9 @@ app.use(session({
 // Статика (фронтенд)
 const pub = path.join(__dirname, '..', 'public');
 app.use(express.static(pub));
+
+// Публічний віджет менеджера (доступ за токеном у посиланні)
+app.get('/w/:token', widgetPage);
 
 // API
 app.use('/api', api);

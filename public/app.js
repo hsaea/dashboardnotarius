@@ -70,6 +70,39 @@ $('toggle-analytics').addEventListener('click', () => {
   $('toggle-analytics').textContent = hidden ? 'Розгорнути' : 'Згорнути';
 });
 
+// --- Згортання посилань-віджетів ---
+$('toggle-widgets').addEventListener('click', () => {
+  const hidden = $('widgets-wrap').classList.toggle('hidden');
+  $('toggle-widgets').textContent = hidden ? 'Розгорнути' : 'Згорнути';
+});
+
+// --- Посилання-віджети (CEO) ---
+function widgetUrl(token) { return location.origin + '/w/' + token; }
+async function loadWidgets() {
+  const { widgets } = await api('/api/widgets');
+  const box = $('widgets-wrap');
+  box.innerHTML = `<p class="muted small">Персональне посилання кожного менеджера — вставте в дашборд Kommo. Кожен бачить лише свої підсумки.</p>` +
+    widgets.map((w) => {
+      const url = widgetUrl(w.token);
+      return `<div class="wrow">
+        <span class="wname">${escapeHtml(w.name)}</span>
+        <input class="wurl" readonly value="${escapeHtml(url)}" onclick="this.select()" />
+        <button class="ghost btn-sm wcopy" data-url="${escapeHtml(url)}">Копіювати</button>
+        <button class="ghost btn-sm wregen" data-login="${escapeHtml(w.login)}">Оновити токен</button>
+      </div>`;
+    }).join('');
+  box.querySelectorAll('.wcopy').forEach((b) => b.addEventListener('click', () => {
+    navigator.clipboard.writeText(b.dataset.url).then(() => {
+      b.textContent = 'Скопійовано'; setTimeout(() => (b.textContent = 'Копіювати'), 1500);
+    });
+  }));
+  box.querySelectorAll('.wregen').forEach((b) => b.addEventListener('click', async () => {
+    if (!confirm('Оновити токен? Старе посилання перестане працювати.')) return;
+    await api('/api/widgets/' + encodeURIComponent(b.dataset.login) + '/regen', { method: 'POST' });
+    await loadWidgets();
+  }));
+}
+
 $('save-rates').addEventListener('click', async () => {
   const sign = Number($('sign-rate').value);
   const act = Number($('act-rate').value);
@@ -115,6 +148,10 @@ async function init() {
   $('ledger-heading').classList.toggle('hidden', !isCeo);
   $('ledger-wrap').classList.add('hidden');
   $('exp-ledger').classList.toggle('hidden', !isCeo);
+
+  // Посилання-віджети — лише CEO
+  $('widgets-box').classList.toggle('hidden', !isCeo);
+  if (isCeo) loadWidgets().catch(() => {});
 
   // Фільтр помічників (лише CEO)
   if (isCeo) {

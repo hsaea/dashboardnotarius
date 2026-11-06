@@ -60,6 +60,12 @@ h2 { margin: 24px 0 10px; font-size: 16px; }
 .collapsible-h { display: flex; align-items: center; gap: 10px; }
 .btn-sm { padding: 5px 12px; font-size: 13px; margin-left: 6px; }
 
+/* Посилання-віджети */
+.wrow { display: flex; align-items: center; gap: 8px; padding: 7px 0; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+.wname { min-width: 90px; font-weight: 600; }
+.wurl { flex: 1; min-width: 220px; font-size: 12px; }
+.wrow .btn-sm { margin-left: 0; }
+
 .controls {
   display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px;
   background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px;

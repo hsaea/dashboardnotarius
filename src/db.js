@@ -140,13 +140,39 @@ async function ensureColumn(table, col, def) {
   if (rows[0].c === 0) await q(`ALTER TABLE ${table} ADD COLUMN ${col} ${def}`);
 }
 
+// Видає токен-віджет кожному помічнику, у кого його ще немає
+async function ensureWidgetTokens() {
+  const rows = await q(`SELECT login FROM users WHERE role='assistant' AND (widget_token IS NULL OR widget_token='')`);
+  for (const r of rows) {
+    await q('UPDATE users SET widget_token=? WHERE login=?', [crypto.randomBytes(24).toString('hex'), r.login]);
+  }
+}
+
 export async function initDb() {
   getPool();
   await createSchema();
   await ensureColumn('deals', 'doc_type', 'VARCHAR(120) NULL');
+  await ensureColumn('users', 'widget_token', 'VARCHAR(64) NULL');
   await migrateFromJson();
   await ensureSettings();
   await seedUsers();
+  await ensureWidgetTokens();
+}
+
+// --- Віджет-токени ---
+export async function getUserByWidgetToken(token) {
+  if (!token) return null;
+  const rows = await q('SELECT * FROM users WHERE widget_token=?', [token]);
+  return rows[0] || null;
+}
+export async function regenWidgetToken(loginName) {
+  const tok = crypto.randomBytes(24).toString('hex');
+  await q('UPDATE users SET widget_token=? WHERE login=?', [tok, loginName]);
+  return tok;
+}
+export async function listWidgets() {
+  const rows = await q(`SELECT login, assistant_name, widget_token FROM users WHERE role='assistant' ORDER BY assistant_name`);
+  return rows.map((r) => ({ login: r.login, name: r.assistant_name, token: r.widget_token }));
 }
 
 // --- Користувачі ---
